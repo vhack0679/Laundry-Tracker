@@ -232,7 +232,7 @@ const App = () => {
         </header>
 
         {/* View Toggle */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div className="flex justify-between items-center gap-2">
           <button onClick={()=>setShowCategoryModal(true)} className="p-2 rounded-full bg-slate-300 text-slate-800">
             <Settings size={20}/>
           </button>
