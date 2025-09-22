@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AlertCircle,
   Plus,
@@ -134,7 +134,7 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => (
 const App = () => {
   const [laundryItems, setLaundryItems] = useState([]);
   const [itemName, setItemName] = useState('');
-  const [itemImageUrl, setItemImageUrl] = useState('');
+  const [itemImage, setItemImage] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('Shirts');
   const [customCategories, setCustomCategories] = useState([]);
   const [sortBy, setSortBy] = useState('date');
@@ -145,6 +145,7 @@ const App = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [newWashDate, setNewWashDate] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
+  const fileInputRef = useRef(null);
 
   const defaultCategories = ['Shirts', 'Pants', 'Nightwear', 'Innerwear', 'Towels', 'Bedsheets', 'Handkerchiefs'];
   const allCategories = [...defaultCategories, ...customCategories];
@@ -167,18 +168,27 @@ const App = () => {
   const addItem = (e) => {
     e.preventDefault();
     if (!itemName.trim()) return;
+
+    let imageUrl = `https://placehold.co/150x150/e2e8f0/1a202c?text=${itemName.substring(0,3)}`;
+    if (itemImage) {
+      imageUrl = URL.createObjectURL(itemImage);
+    }
+
     const newItem = {
       id: Date.now().toString(),
       name: itemName,
       usageCount: 0,
       category: selectedCategory,
-      imageUrl: itemImageUrl || `https://placehold.co/150x150/e2e8f0/1a202c?text=${itemName.substring(0,3)}`,
+      imageUrl: imageUrl,
       lastWashed: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     };
     setLaundryItems([newItem, ...laundryItems]);
     setItemName('');
-    setItemImageUrl('');
+    setItemImage(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
   };
 
   const addCategory = (e) => {
@@ -249,7 +259,14 @@ const App = () => {
         {/* Add Item Form */}
         <form onSubmit={addItem} className="flex flex-col sm:flex-row gap-2 flex-wrap">
           <input type="text" value={itemName} onChange={e=>setItemName(e.target.value)} placeholder="Item Name" className="flex-1 p-3 rounded-xl border"/>
-          <input type="text" value={itemImageUrl} onChange={e=>setItemImageUrl(e.target.value)} placeholder="Image URL" className="flex-1 p-3 rounded-xl border"/>
+          <input 
+            type="file" 
+            accept="image/*" 
+            capture="environment" 
+            ref={fileInputRef}
+            onChange={e => setItemImage(e.target.files[0])} 
+            className="flex-1 p-2 rounded-xl border bg-white cursor-pointer text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+          />
           <select value={selectedCategory} onChange={e=>setSelectedCategory(e.target.value)} className="flex-1 p-3 rounded-xl border">
             {allCategories.map(cat=><option key={cat}>{cat}</option>)}
           </select>
@@ -324,3 +341,4 @@ const App = () => {
 };
 
 export default App;
+
