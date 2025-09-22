@@ -165,13 +165,22 @@ const App = () => {
     localStorage.setItem('laundryCategories', JSON.stringify(customCategories));
   }, [customCategories]);
 
-  const addItem = (e) => {
+  const addItem = async (e) => {
     e.preventDefault();
     if (!itemName.trim()) return;
 
     let imageUrl = `https://placehold.co/150x150/e2e8f0/1a202c?text=${itemName.substring(0,3)}`;
     if (itemImage) {
-      imageUrl = URL.createObjectURL(itemImage);
+       try {
+        imageUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(itemImage);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = error => reject(error);
+        });
+      } catch (error) {
+        console.error("Error converting image to Base64", error);
+      }
     }
 
     const newItem = {
@@ -257,20 +266,34 @@ const App = () => {
         </div>
 
         {/* Add Item Form */}
-        <form onSubmit={addItem} className="flex flex-col sm:flex-row gap-2 flex-wrap">
-          <input type="text" value={itemName} onChange={e=>setItemName(e.target.value)} placeholder="Item Name" className="flex-1 p-3 rounded-xl border"/>
-          <input 
-            type="file" 
-            accept="image/*" 
-            capture="environment" 
-            ref={fileInputRef}
-            onChange={e => setItemImage(e.target.files[0])} 
-            className="flex-1 p-2 rounded-xl border bg-white cursor-pointer text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-          />
-          <select value={selectedCategory} onChange={e=>setSelectedCategory(e.target.value)} className="flex-1 p-3 rounded-xl border">
-            {allCategories.map(cat=><option key={cat}>{cat}</option>)}
+        <form onSubmit={addItem} className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input 
+              type="text" 
+              value={itemName} 
+              onChange={e => setItemName(e.target.value)} 
+              placeholder="Item Name" 
+              className="w-full p-3 rounded-xl border"
+            />
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef}
+              onChange={e => setItemImage(e.target.files[0])} 
+              className="w-full p-2 rounded-xl border bg-white cursor-pointer text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+          </div>
+          <select 
+            value={selectedCategory} 
+            onChange={e => setSelectedCategory(e.target.value)} 
+            className="w-full p-3 rounded-xl border"
+          >
+            {allCategories.map(cat => <option key={cat}>{cat}</option>)}
           </select>
-          <button type="submit" className="flex items-center justify-center p-3 rounded-xl bg-indigo-600 text-white font-semibold">
+          <button 
+            type="submit" 
+            className="w-full flex items-center justify-center p-3 rounded-xl bg-indigo-600 text-white font-semibold"
+          >
             <Plus size={20} className="mr-2"/> Add Item
           </button>
         </form>
@@ -341,4 +364,5 @@ const App = () => {
 };
 
 export default App;
+
 
